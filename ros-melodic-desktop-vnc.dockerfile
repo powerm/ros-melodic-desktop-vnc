@@ -2,14 +2,30 @@
 
 FROM ubuntu:18.04
 
-MAINTAINER Simon Hofmann "simon.hofmann@consol.de"
-ENV REFRESHED_AT 2018-10-29
+ENV REFRESHED_AT 2021-01-28
 
 LABEL io.k8s.description="Headless VNC Container with Xfce window manager, firefox and chromium" \
       io.k8s.display-name="Headless VNC Container based on Ubuntu" \
       io.openshift.expose-services="6901:http,5901:xvnc" \
       io.openshift.tags="vnc, ubuntu, xfce" \
       io.openshift.non-scalable=true
+
+ARG USER_NAME
+ARG USER_PASSWORD
+ARG USER_ID
+ARG USER_GID
+
+RUN apt-get update
+RUN apt install sudo 
+RUN useradd -ms /bin/bash $USER_NAME
+RUN usermod -aG sudo $USER_NAME
+RUN yes $USER_PASSWORD | passwd $USER_NAME
+
+# set uid and gid to match those outside the container
+RUN usermod -u $USER_ID $USER_NAME
+RUN groupmod -g $USER_GID $USER_NAME
+
+ENV USER_HOME_DIR=/home/$USER_NAME
 
 ## Connection ports for controlling the UI:
 # VNC port:5901
@@ -23,11 +39,11 @@ EXPOSE $VNC_PORT $NO_VNC_PORT
 ARG SH_DIR=./xfce_exec
 
 ### Envrionment config
-ENV HOME=/headless \
+ENV HOME=$USER_HOME_DIR \
     TERM=xterm \
     STARTUPDIR=/dockerstartup \
-    INST_SCRIPTS=/headless/install \
-    NO_VNC_HOME=/headless/noVNC \
+    INST_SCRIPTS=$USER_HOME_DIR/install \
+    NO_VNC_HOME=$USER_HOME_DIR/noVNC \
     DEBIAN_FRONTEND=noninteractive \
     VNC_COL_DEPTH=24 \
     VNC_RESOLUTION=1280x1024 \
@@ -116,12 +132,12 @@ RUN apt-get update && apt-get install -y \
 
 
 # Change USER to 0 to get the root
-USER 1000
+USER $USER_NAME
 
 # setup environment, now in the user mode
-RUN echo "source /opt/ros/melodic/setup.bash" >> /headless/.bashrc
+RUN echo "source /opt/ros/melodic/setup.bash" >> $HOME/.bashrc
 # source is the command in /bin/bash, while the default shell is /bin/sh
-RUN /bin/bash -c 'source /headless/.bashrc'
+RUN /bin/bash -c 'source $HOME/.bashrc'
 
 
 ENTRYPOINT ["/dockerstartup/vnc_startup.sh"]
