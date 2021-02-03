@@ -242,6 +242,16 @@ RUN echo "Install noVNC - HTML5 based VNC viewer" \
    && ln -s $NO_VNC_HOME/vnc_lite.html $NO_VNC_HOME/index.html
 
 
+### Add all install scripts for further steps
+ADD $SH_DIR/common/install/ $INST_SCRIPTS/
+ADD $SH_DIR/ubuntu/install/ $INST_SCRIPTS/
+RUN find $INST_SCRIPTS -name '*.sh' -exec chmod a+x {} +
+
+
+### ============Install firefox and chrome browser==================
+RUN $INST_SCRIPTS/firefox.sh
+RUN $INST_SCRIPTS/chrome.sh
+
 
 ### ================  Install xfce UI  =====================
 RUN echo "Install Xfce4 UI components" \
@@ -250,10 +260,6 @@ RUN echo "Install Xfce4 UI components" \
     && apt-get purge -y pm-utils xscreensaver* \
     && apt-get clean -y && rm -rf /var/lib/apt/lists/*
 
-### Add all install scripts for further steps
-ADD $SH_DIR/common/install/ $INST_SCRIPTS/
-ADD $SH_DIR/ubuntu/install/ $INST_SCRIPTS/
-RUN find $INST_SCRIPTS -name '*.sh' -exec chmod a+x {} +
 
 ### Install xfce UI
 ADD $SH_DIR/common/xfce/ $HOME/
@@ -271,9 +277,6 @@ RUN echo "Install nss-wrapper to be able to execute image as non-root user" \
 ADD $SH_DIR/common/scripts $STARTUPDIR
 RUN $INST_SCRIPTS/set_user_permission.sh $STARTUPDIR $HOME
 
-### ============Install firefox and chrome browser==================
-RUN $INST_SCRIPTS/firefox.sh
-RUN $INST_SCRIPTS/chrome.sh
 
 # setup environment
 ENV LANG C.UTF-8
