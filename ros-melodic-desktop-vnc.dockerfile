@@ -28,7 +28,9 @@ RUN apt-get update && apt-get install -y \
 ENV LANG en_US.UTF-8
 
 # Install timezone
-RUN ln -fs /usr/share/zoneinfo/UTC /etc/localtime \
+ENV TZ=Asia/Shanghai
+RUN ln -fs /usr/share/zoneinfo/$TZ /etc/localtime \
+  && echo $TZ > /etc/timezone
   && export DEBIAN_FRONTEND=noninteractive \
   && apt-get update \
   && apt-get install -y tzdata \
@@ -94,23 +96,23 @@ ARG USER_ID
 ARG USER_GID
 
 # Create a non-root user
-RUN groupadd --gid $USER_GID $USERNAME \
-  && useradd -s /bin/bash --uid $USER_UID --gid $USER_GID -m $USERNAME \
+RUN groupadd --gid $USER_GID $USER_NAME \
+  && useradd -s /bin/bash --uid $USER_UID --gid $USER_GID -m $USER_NAME \
   # [Optional] Add sudo support for the non-root user
   && apt-get update \
   && apt-get install -y sudo \
-  && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME\
-  && chmod 0440 /etc/sudoers.d/$USERNAME \
+  && echo $USER_NAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USER_NAME\
+  && chmod 0440 /etc/sudoers.d/$USER_NAME \
   # Cleanup
   && apt-get clean && rm -rf /var/lib/apt/lists/* \
-  && echo "source /usr/share/bash-completion/completions/git" >> /home/$USERNAME/.bashrc \
-  && echo "if [ -f /opt/ros/${ROS_DISTRO}/setup.bash ]; then source /opt/ros/${ROS_DISTRO}/setup.bash; fi" >> /home/$USERNAME/.bashrc
+  && echo "source /usr/share/bash-completion/completions/git" >> /home/$USER_NAME/.bashrc \
+  && echo "if [ -f /opt/ros/${ROS_DISTRO}/setup.bash ]; then source /opt/ros/${ROS_DISTRO}/setup.bash; fi" >> /home/$USER_NAME/.bashrc
 ENV DEBIAN_FRONTEND=
 
 # RUN apt-get update \
 #     && apt install sudo \
-#     && groupadd --gid $USER_GID $USERNAME \
-#     && useradd -s /bin/bash --uid $USER_UID --gid $USER_GID -m $USERNAME \
+#     && groupadd --gid $USER_GID $USER_NAME \
+#     && useradd -s /bin/bash --uid $USER_UID --gid $USER_GID -m $USER_NAME \
 #     && usermod -aG sudo $USER_NAME \
 #     && yes $USER_PASSWORD | passwd $USER_NAME
 
