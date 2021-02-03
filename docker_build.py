@@ -9,7 +9,7 @@ if __name__=="__main__":
 
 	print("building docker container . . . ")
 	user_name = getpass.getuser()
-	default_image_name = user_name + "-ros-melodic-desktop-vnc"
+	default_image_name = user_name + "-ros-melodic-desktop-vnc:develop"
 
 
 	parser = argparse.ArgumentParser()
