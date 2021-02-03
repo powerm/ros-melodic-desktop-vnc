@@ -70,11 +70,12 @@ if __name__=="__main__":
 
 
 
-    if args.entrypoint and args.entrypoint != "":
-        cmd += "--entrypoint=\"%(entrypoint)s\" " % {"entrypoint": args.entrypoint}
-    else:
-        cmd += "-it "
+    # if args.entrypoint and args.entrypoint != "":
+    #    cmd += "--entrypoint=\"%(entrypoint)s\" " % {"entrypoint": args.entrypoint}
+    # else:
+    cmd += "-it "
     cmd += args.image
+    cmd += " /bin/bash"
     #cmd_endxhost = "xhost -local:root"
 
     #print("command = \n \n", cmd, "\n", cmd_endxhost)
