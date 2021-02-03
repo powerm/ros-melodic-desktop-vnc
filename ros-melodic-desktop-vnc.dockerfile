@@ -19,6 +19,11 @@ LABEL io.k8s.description="Headless VNC Container with Xfce window manager, firef
       io.openshift.tags="vnc, ubuntu, xfce" \
       io.openshift.non-scalable=true
 
+ARG USER_NAME
+ARG USER_PASSWORD
+ARG USER_ID
+ARG USER_GID
+
 # Install language
 RUN apt-get update && apt-get install -y \
   locales \
@@ -30,7 +35,7 @@ ENV LANG en_US.UTF-8
 # Install timezone
 ENV TZ=Asia/Shanghai
 RUN ln -fs /usr/share/zoneinfo/$TZ /etc/localtime \
-  && echo $TZ > /etc/timezone
+  && echo $TZ > /etc/timezone \
   && export DEBIAN_FRONTEND=noninteractive \
   && apt-get update \
   && apt-get install -y tzdata \
@@ -68,7 +73,7 @@ ENV DEBIAN_FRONTEND=
 ###########################################
 # Develop image 
 ###########################################
-FROM base AS dev
+# FROM base AS dev
 
 ENV DEBIAN_FRONTEND=noninteractive
 # ================Install dev tools======================
@@ -90,14 +95,11 @@ RUN apt-get update && apt-get install -y \
   && rosdep init || echo "rosdep already initialized"
 
 
-ARG USER_NAME
-ARG USER_PASSWORD
-ARG USER_ID
-ARG USER_GID
+
 
 # Create a non-root user
 RUN groupadd --gid $USER_GID $USER_NAME \
-  && useradd -s /bin/bash --uid $USER_UID --gid $USER_GID -m $USER_NAME \
+  && useradd -s /bin/bash -u $USER_ID --gid $USER_GID -m $USER_NAME \
   # [Optional] Add sudo support for the non-root user
   && apt-get update \
   && apt-get install -y sudo \
@@ -120,7 +122,7 @@ ENV DEBIAN_FRONTEND=
 ###########################################
 # Full image 
 ###########################################
-FROM dev AS full
+#FROM dev AS full
 
 ENV DEBIAN_FRONTEND=noninteractive
 # Install the full release
@@ -132,7 +134,7 @@ ENV DEBIAN_FRONTEND=
 ###########################################
 #  Full+Gazebo image 
 ###########################################
-FROM full AS gazebo
+#FROM full AS gazebo
 
 ENV DEBIAN_FRONTEND=noninteractive
 # Install gazebo
@@ -146,7 +148,7 @@ ENV DEBIAN_FRONTEND=
 #  Full+Gazebo+Nvidia image 
 ###########################################
 
-FROM gazebo AS gazebo-nvidia
+#FROM gazebo AS gazebo-nvidia
 
 ################
 # Expose the nvidia driver to allow opengl 
@@ -171,7 +173,7 @@ ENV QT_X11_NO_MITSHM 1
 #  Full+Gazebo+Nvidia image 
 ###########################################
 
-FROM gazebo AS gazebo-desktop-vnc
+#FROM gazebo AS gazebo-desktop-vnc
 
 ENV DEBIAN_FRONTEND=noninteractive
 #  ==============Install some tools
@@ -278,8 +280,7 @@ ENV LANG C.UTF-8
 ENV LC_ALL C.UTF-8
 
 # bootstrap rosdep
-RUN rosdep init && \
-  rosdep update --rosdistro $ROS_DISTRO
+RUN  rosdep update --rosdistro $ROS_DISTRO
 
 ENV DEBIAN_FRONTEND=
 
